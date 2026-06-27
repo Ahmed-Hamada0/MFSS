@@ -20,7 +20,7 @@ A high-performance .NET CLI tool for migrating files from HTTP sources to cloud 
 - **✅ Config Validation** — Validates all settings before migration starts
 - **🛑 Graceful Shutdown** — Ctrl+C finishes current operations cleanly
 - **📋 Per-Table Logging** — Separate migration log tables per source table
-- **🐳 Docker Ready** — Dockerfile included for containerized deployments
+- **📦 Self-Contained Deploy** — Publish as a single-file executable with no dependencies
 - **🧪 Tested** — Comprehensive unit test suite
 
 ## 📦 Installation
@@ -46,12 +46,14 @@ dotnet build
 dotnet run -- --mode migrate
 ```
 
-### Docker
+### Self-Contained Executable
 
 ```bash
-docker build -t mfss .
-docker run -v $(pwd)/appsettings.json:/app/appsettings.json mfss --mode migrate
+dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -o ./publish
+./publish/MFSS --mode migrate --config appsettings.json
 ```
+
+Available runtime identifiers: `linux-x64`, `win-x64`, `osx-x64`, `osx-arm64`.
 
 ## 🚀 Quick Start
 
@@ -269,26 +271,29 @@ dotnet pack -c Release
 dotnet nuget push ./nupkg/MFSS.1.0.0.nupkg --api-key YOUR_API_KEY --source https://api.nuget.org/v3/index.json
 ```
 
-## 🐳 Docker Usage
+## 📦 Self-Contained Deployment
+
+You can publish MFSS as a single-file, self-contained executable that requires no .NET runtime on the target machine:
 
 ```bash
-# Build
-docker build -t mfss .
+# Linux
+dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -o ./publish
 
-# Run with config file
-docker run --rm \
-  -v $(pwd)/appsettings.json:/app/appsettings.json \
-  -e DB_HOST=host.docker.internal \
-  -e DB_USER=root \
-  -e DB_PASS=secret \
-  -e AWS_ACCESS_KEY=AKIA... \
-  -e AWS_SECRET_KEY=... \
-  mfss --mode migrate
+# Windows
+dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o ./publish
+
+# macOS (Apple Silicon)
+dotnet publish -c Release -r osx-arm64 --self-contained -p:PublishSingleFile=true -o ./publish
+```
+
+Then copy the executable and your `appsettings.json` to the target machine:
+
+```bash
+# Run migration
+./publish/MFSS --mode migrate --config appsettings.json
 
 # Dry run
-docker run --rm \
-  -v $(pwd)/appsettings.json:/app/appsettings.json \
-  mfss --dry-run
+./publish/MFSS --dry-run --config appsettings.json
 ```
 
 ## 📄 License
